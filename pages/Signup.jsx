@@ -1,61 +1,45 @@
-// src/pages/Signup.jsx
-import React, { useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import { db } from "../services/firebase";
-import { collection, addDoc } from "firebase/firestore";
+import React, { useState } from 'react';
+import { auth } from '../firebase';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { useNavigate } from 'react-router-dom';
 
-export default function Signup() {
+const Signup = () => {
   const navigate = useNavigate();
-  const { state } = useLocation();
-  const email = state?.email || "";
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
-  const [name, setName] = useState("");
-  const [org, setOrg] = useState("");
-
-  const handleSignup = async () => {
-    if (!name || !org) return alert("Please fill all fields");
-
-    await addDoc(collection(db, "users"), {
-      email,
-      name,
-      organizer: org,
-      createdAt: new Date(),
-    });
-
-    alert("Signup Complete!");
-    navigate("/dashboard");
+  const handleSignup = async (e) => {
+    e.preventDefault();
+    try {
+      await createUserWithEmailAndPassword(auth, email, password);
+      navigate('/dashboard');
+    } catch (err) {
+      alert('Signup failed: ' + err.message);
+    }
   };
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md text-center">
-        <img
-          src="https://clockify.me/assets/images/brand/clockify-logo.svg"
-          alt="Clockify"
-          className="mx-auto mb-6 h-8"
-        />
-        <h2 className="text-xl font-semibold mb-4">Create account</h2>
-        <p className="text-gray-500 mb-4">{email}</p>
-
+      <form className="bg-white p-8 rounded shadow-md w-80" onSubmit={handleSignup}>
+        <h2 className="text-2xl font-bold mb-4 text-center">Sign Up</h2>
         <input
-          placeholder="Your Name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="w-full px-4 py-2 border rounded mb-4 focus:ring-2 focus:ring-blue-500 outline-none"
+          type="email"
+          placeholder="Email"
+          className="border w-full p-2 mb-2 rounded"
+          onChange={(e) => setEmail(e.target.value)}
         />
         <input
-          placeholder="Organization Name"
-          value={org}
-          onChange={(e) => setOrg(e.target.value)}
-          className="w-full px-4 py-2 border rounded mb-6 focus:ring-2 focus:ring-blue-500 outline-none"
+          type="password"
+          placeholder="Password"
+          className="border w-full p-2 mb-4 rounded"
+          onChange={(e) => setPassword(e.target.value)}
         />
-        <button
-          onClick={handleSignup}
-          className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
-        >
-          Continue
+        <button className="bg-green-500 text-white w-full p-2 rounded" type="submit">
+          Sign Up
         </button>
-      </div>
+      </form>
     </div>
   );
-}
+};
+
+export default Signup;
